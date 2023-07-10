@@ -32,6 +32,10 @@ public class ItemRepository {
     found.setItemName(updateParam.getItemName());
     found.setPrice(updateParam.getPrice());
     found.setQuantity(updateParam.getQuantity());
+    found.setOpen(updateParam.getOpen());
+    found.setItemType(updateParam.getItemType());
+    found.setRegions(updateParam.getRegions());
+    found.setDeliveryCode(updateParam.getDeliveryCode());
   }
 
   public void clearStore() {
