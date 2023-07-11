@@ -12,21 +12,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
+import org.springframework.validation.annotation.Validated;
 
 import hello.itemService.domain.item.DeliveryCode;
 import hello.itemService.domain.item.Item;
 import hello.itemService.domain.item.ItemRepository;
 import hello.itemService.domain.item.ItemType;
+import hello.itemService.web.validation.ItemValidator;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,19 +36,27 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/basic/items")
 public class BasicItemController {
   private final ItemRepository itemRepository;
-
+  private final ItemValidator itemValidator;
+  
   @Autowired
-  public BasicItemController(ItemRepository itemRepository) {
+  public BasicItemController(ItemRepository itemRepository, ItemValidator itemValidator) {
     this.itemRepository = itemRepository;
+    this.itemValidator = itemValidator;
   }
 
-  @Bean
-  public MessageSource messageSource() {
-    ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-    messageSource.setBasenames("messages", "errors");
-    messageSource.setDefaultEncoding("utf-8");
-    return messageSource;
+  @InitBinder
+  public void init(WebDataBinder dataBinder) {
+    log.info("init binder {}", dataBinder);
+    dataBinder.addValidators(itemValidator);
   }
+
+  // @Bean
+  // public MessageSource messageSource() {
+  //   ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+  //   messageSource.setBasenames("messages", "errors");
+  //   messageSource.setDefaultEncoding("utf-8");
+  //   return messageSource;
+  // }
 
   @ModelAttribute("regions")
   public Map<String, String> regions() {
@@ -94,36 +103,15 @@ public class BasicItemController {
 
   @PostMapping("/add")
   public String addItem(
+    @Validated
     @ModelAttribute("item") Item item,
     BindingResult bindingResult,
     RedirectAttributes redirectAttributes
   ) {
-    log.info("objectName > {}", bindingResult.getObjectName());
-    log.info("target > {}", bindingResult.getTarget());
-    
 
-    if (!StringUtils.hasText(item.getItemName())) {
-      bindingResult.rejectValue("itemName", "required");
-    }
-
-    Integer price = item.getPrice();
-    Integer quantity = item.getQuantity();
-    if (price == null || price < 1_000 || price > 1_000_000) {
-      bindingResult.rejectValue("price", "range", new Object[]{1_000, 1_000_000}, null);
-    }
-
-    if (quantity == null || quantity >= 9_999) {
-      bindingResult.rejectValue("quantity", "max", new Object[]{9999}, null);
-    }
-
-    if (price !=null && quantity !=null && price * quantity < 10_000) {
-      bindingResult.reject("totalPriceMin", new Object[]{10_000, price * quantity}, null);
-    }
-    
     if (bindingResult.hasErrors()) {
-      log.info("Binding Result.getTarget {}", bindingResult.getTarget());
-      log.info("Binding Result.getAllErrors {}", bindingResult.getAllErrors());
-      return "basic/addForm";
+      log.info("error 발생 {}", bindingResult.getAllErrors());
+       return "basic/addForm";
     }
 
     itemRepository.save(item);
