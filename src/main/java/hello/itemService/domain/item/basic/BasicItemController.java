@@ -19,6 +19,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 
 import hello.itemService.domain.item.DeliveryCode;
 import hello.itemService.domain.item.Item;
@@ -90,33 +93,36 @@ public class BasicItemController {
   }
 
   @PostMapping("/add")
-  public String addItem(@ModelAttribute("item") Item item, RedirectAttributes redirectAttributes, Model model) {
-    log.info("item : {}", item.toString());
-
-    Map<String, String> errors = new HashMap<>();
+  public String addItem(
+    @ModelAttribute("item") Item item,
+    BindingResult bindingResult,
+    RedirectAttributes redirectAttributes
+  ) {
+    log.info("objectName > {}", bindingResult.getObjectName());
+    log.info("target > {}", bindingResult.getTarget());
+    
 
     if (!StringUtils.hasText(item.getItemName())) {
-      errors.put("itemName", "상품명을 입력해 주세요.");
+      bindingResult.rejectValue("itemName", "required");
     }
 
     Integer price = item.getPrice();
     Integer quantity = item.getQuantity();
     if (price == null || price < 1_000 || price > 1_000_000) {
-      errors.put("price", "가격은 1,000 ~ 1,000,000원 까지 허용됩니다.");
+      bindingResult.rejectValue("price", "range", new Object[]{1_000, 1_000_000}, null);
     }
 
     if (quantity == null || quantity >= 9_999) {
-      errors.put("quantity", "수량은 9,999개 까지 허용됩니다.");
+      bindingResult.rejectValue("quantity", "max", new Object[]{9999}, null);
     }
 
     if (price !=null && quantity !=null && price * quantity < 10_000) {
-      errors.put("globalError", "주문 금액은 최소 10,000원 이상이어야 합니다.\n 현재 주문하신 금액은 " + price * quantity + "원 입니다.");
+      bindingResult.reject("totalPriceMin", new Object[]{10_000, price * quantity}, null);
     }
-
-    log.info("errors {}", errors);
-
-    if (!errors.isEmpty()) {
-      model.addAttribute("errors", errors);
+    
+    if (bindingResult.hasErrors()) {
+      log.info("Binding Result.getTarget {}", bindingResult.getTarget());
+      log.info("Binding Result.getAllErrors {}", bindingResult.getAllErrors());
       return "basic/addForm";
     }
 
