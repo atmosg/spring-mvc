@@ -8,6 +8,10 @@
     .container {
       max-width: 560px;
     }
+    .field-error {
+      color: red;
+      margin-bottom: 12px;
+    }
   </style>
 </head>
 
@@ -18,17 +22,33 @@
     </div>
     <h4 class="mb-3">상품 입력</h4>
     <form action="item.html" th:action th:object="${item}" method="post">
+      <div class="field-error"
+          th:if="${errors?.containsKey('globalError')}"      
+          th:text="${errors['globalError']}">
+      </div>
       <div class="row">
         <label for="itemName">상품명</label>
         <input type="text" id="itemName" th:field="*{itemName}" class="form-control" placeholder="이름을 입력하세요">
+        <div class="field-error"
+            th:if="${errors?.containsKey('itemName')}"
+            th:text="${errors['itemName']}">
+        </div>
       </div>
       <div class="row">
         <label for="price">가격</label>
         <input type="text" id="price" th:field="*{price}" class="form-control" placeholder="가격을 입력하세요">
+        <div class="field-error"
+            th:if="${errors?.containsKey('price')}"
+            th:text="${errors['price']}">
+        </div>
       </div>
       <div class="row">
         <label for="quantity">수량</label>
         <input type="text" id="quantity" th:field="*{quantity}" class="form-control" placeholder="수량을 입력하세요">
+        <div class="field-error"
+            th:if="${errors?.containsKey('quantity')}"
+            th:text="${errors['quantity']}">
+        </div>
       </div>
       <div class="row mt-3">
         <h4>판매 여부</h4>
