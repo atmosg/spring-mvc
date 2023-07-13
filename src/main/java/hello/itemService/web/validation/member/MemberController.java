@@ -19,7 +19,7 @@ public class MemberController {
 
   @Autowired
   public MemberController(MemberRepository memberRepository) {
-      this.memberRepository = memberRepository;
+    this.memberRepository = memberRepository;
   }
 
   @GetMapping("/add")
@@ -33,6 +33,7 @@ public class MemberController {
       return "members/addMemberForm";
     }
 
+    memberRepository.save(member);
     return "redirect:/";
   }
 

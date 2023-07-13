@@ -157,10 +157,4 @@ public class BasicItemController {
     return "redirect:/basic/items/{itemId}";
   }
 
-  @PostConstruct
-  public void init() {
-    itemRepository.save(new Item("아이템A", 10_000, 2));
-    itemRepository.save(new Item("아이템B", 12_000, 3));
-    itemRepository.save(new Item("아이템C", 29_900, 10));
-  }
 }
