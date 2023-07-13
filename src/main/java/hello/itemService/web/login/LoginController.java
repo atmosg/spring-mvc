@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import hello.itemService.domain.login.LoginService;
 import hello.itemService.domain.member.Member;
+import hello.itemService.web.SessionConst;
 import hello.itemService.web.session.SessionManager;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 public class LoginController {
   
   private final LoginService loginService;
-  private final SessionManager sessionManager;
 
   @GetMapping("/login")
   public String loginForm(@ModelAttribute("loginForm") LoginForm form) {
@@ -34,7 +35,7 @@ public class LoginController {
   public String login(
     @Valid @ModelAttribute("loginForm") LoginForm form,
     BindingResult bindingResult,
-    HttpServletResponse res
+    HttpServletRequest req
   ) {
     if (bindingResult.hasErrors()) {
       return "login/loginForm";
@@ -48,15 +49,17 @@ public class LoginController {
       return "login/loginForm";
     }
 
-    sessionManager.createSession(loginMember, res);
-
+    HttpSession session = req.getSession();
+    session.setAttribute(SessionConst.LOGIN_MEMBER, loginMember);
     return "redirect:/";
   }
 
   @PostMapping("/logout")
   public String logout(HttpServletRequest req) {
-    sessionManager.expire(req);
-    
+    HttpSession session = req.getSession(false);
+    log.info("setssion {}", session);
+    if (session != null) session.invalidate();
+
     return "redirect:/";
   }
 }
