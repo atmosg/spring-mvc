@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import hello.itemService.domain.member.Member;
 import hello.itemService.domain.member.MemberRepository;
+import hello.itemService.web.session.SessionManager;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,20 +18,17 @@ import lombok.extern.slf4j.Slf4j;
 public class HomeController {
 
   private final MemberRepository MemberRepository;
+  private final SessionManager sessionManager;
   
   @GetMapping("/")
   public String homeLogin(
-    @CookieValue(name = "memberId", required = false) Long memberId,
+    HttpServletRequest req,
     Model model
   ) {
-    if (memberId == null) return "home";
-
-    Member loginMember = MemberRepository.findById(memberId);
-    if (loginMember == null) return "home";
-
-    log.info("loginMember: {}", loginMember);
-
-    model.addAttribute("member", loginMember);
+    Member member = (Member) sessionManager.getSession(req);
+    if (member == null) return "home";
+    
+    model.addAttribute("member", member);
     return "loginHome";
   }
 }

@@ -1,6 +1,6 @@
 package hello.itemService.web.login;
 
-import org.springframework.boot.web.server.Cookie;
+import org.apache.tomcat.util.net.SSLSessionManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,7 +9,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import hello.itemService.domain.login.LoginService;
 import hello.itemService.domain.member.Member;
+import hello.itemService.web.session.SessionManager;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 public class LoginController {
   
   private final LoginService loginService;
+  private final SessionManager sessionManager;
 
   @GetMapping("/login")
   public String loginForm(@ModelAttribute("loginForm") LoginForm form) {
@@ -27,7 +32,7 @@ public class LoginController {
 
   @PostMapping("/login")
   public String login(
-    @ModelAttribute("loginForm") LoginForm form,
+    @Valid @ModelAttribute("loginForm") LoginForm form,
     BindingResult bindingResult,
     HttpServletResponse res
   ) {
@@ -43,16 +48,15 @@ public class LoginController {
       return "login/loginForm";
     }
 
-    res.addCookie(new jakarta.servlet.http.Cookie("memberId", String.valueOf(loginMember.getId())));
+    sessionManager.createSession(loginMember, res);
 
     return "redirect:/";
   }
 
   @PostMapping("/logout")
-  public String logout(HttpServletResponse res) {
-    jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("memberId", null);
-    cookie.setMaxAge(0);
-    res.addCookie(cookie);
+  public String logout(HttpServletRequest req) {
+    sessionManager.expire(req);
+    
     return "redirect:/";
   }
 }
