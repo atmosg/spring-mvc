@@ -27,7 +27,11 @@ import hello.itemService.domain.item.DeliveryCode;
 import hello.itemService.domain.item.Item;
 import hello.itemService.domain.item.ItemRepository;
 import hello.itemService.domain.item.ItemType;
+import hello.itemService.domain.item.SaveCheck;
+import hello.itemService.domain.item.UpdateCheck;
 import hello.itemService.web.validation.ItemValidator;
+import hello.itemService.web.validation.form.ItemSaveForm;
+import hello.itemService.web.validation.form.ItemUpdateForm;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,11 +48,11 @@ public class BasicItemController {
     this.itemValidator = itemValidator;
   }
 
-  @InitBinder
-  public void init(WebDataBinder dataBinder) {
-    log.info("init binder {}", dataBinder);
-    dataBinder.addValidators(itemValidator);
-  }
+  // @InitBinder
+  // public void init(WebDataBinder dataBinder) {
+  //   log.info("init binder {}", dataBinder);
+  //   dataBinder.addValidators(itemValidator);
+  // }
 
   // @Bean
   // public MessageSource messageSource() {
@@ -103,16 +107,19 @@ public class BasicItemController {
 
   @PostMapping("/add")
   public String addItem(
-    @Validated
-    @ModelAttribute("item") Item item,
+    @Validated @ModelAttribute("item") ItemSaveForm form,
     BindingResult bindingResult,
     RedirectAttributes redirectAttributes
   ) {
-
     if (bindingResult.hasErrors()) {
       log.info("error 발생 {}", bindingResult.getAllErrors());
-       return "basic/addForm";
+      return "basic/addForm";
     }
+
+    Item item = new Item();
+    item.setItemName(form.getItemName());
+    item.setPrice(form.getPrice());
+    item.setQuantity(form.getQuantity());
 
     itemRepository.save(item);
     redirectAttributes.addAttribute("itemId", item.getId());
@@ -130,10 +137,22 @@ public class BasicItemController {
   @PostMapping("/{itemId}/edit")
   public String updateItem(
     @PathVariable Long itemId,
-    @ModelAttribute("item") Item item
+    @Validated @ModelAttribute("item") ItemUpdateForm form,
+    BindingResult bindingResult
   ) {
-    log.info("item: {}", item);
-    itemRepository.uptdate(itemId, item);
+    log.info("item: {}", form);
+
+    if (bindingResult.hasErrors()) {
+      log.info("error 발생 {}", bindingResult.getAllErrors());
+       return "basic/editForm";
+    }
+
+    Item itemParam = new Item();
+    itemParam.setItemName(form.getItemName());
+    itemParam.setPrice(form.getPrice());
+    itemParam.setQuantity(form.getQuantity());
+
+    itemRepository.uptdate(itemId, itemParam);
 
     return "redirect:/basic/items/{itemId}";
   }

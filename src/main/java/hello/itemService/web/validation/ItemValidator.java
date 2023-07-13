@@ -6,6 +6,8 @@ import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
 import hello.itemService.domain.item.Item;
+import hello.itemService.web.validation.form.ItemSaveForm;
+import hello.itemService.web.validation.form.ItemUpdateForm;
 
 @Component
 public class ItemValidator implements Validator {
@@ -21,19 +23,19 @@ public class ItemValidator implements Validator {
     Integer price = item.getPrice();
     Integer quantity = item.getQuantity();
 
-    ValidationUtils.rejectIfEmptyOrWhitespace(
-      errors,
-      "itemName",
-      "required"
-    );
+    // ValidationUtils.rejectIfEmptyOrWhitespace(
+    //   errors,
+    //   "itemName",
+    //   "required"
+    // );
 
-    if (price == null || price < 1_000 || price > 1_000_000) {
-      errors.rejectValue("price", "range", new Object[]{1_000, 1_000_000}, null);
-    }
+    // if (price == null || price < 1_000 || price > 1_000_000) {
+    //   errors.rejectValue("price", "range", new Object[]{1_000, 1_000_000}, null);
+    // }
 
-    if (quantity == null || quantity >= 9_999) {
-      errors.rejectValue("quantity", "max", new Object[]{9999}, null);
-    }
+    // if (quantity == null || quantity >= 9_999) {
+    //   errors.rejectValue("quantity", "max", new Object[]{9999}, null);
+    // }
 
     if (price !=null && quantity !=null && price * quantity < 10_000) {
       errors.reject("totalPriceMin", new Object[]{10_000, price * quantity}, null);
